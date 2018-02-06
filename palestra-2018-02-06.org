@@ -422,7 +422,7 @@ const smartSquaredEvensSum = // One single pass
   (n) => iteratorSum(smartRange(n).filter(isEven).map(square));
 #+END_SRC
 
-#+ATTR_REVEAL: :frag roll-in
+** Vantagens
 Geradores podem ser infinitos!
 
 #+BEGIN_SRC javascript
@@ -542,16 +542,11 @@ async function continuouslyProcessRequests (route) {
 
 * Mais Informações
 
-  - Programação funcional
-    - Abelson, Sussman e Sussman - [[https://sarabander.github.io/sicp][Structure and Interpretation Of Computer Programs]] (em Lisp)
-    - Friedman e Felleisen - [[https://www.amazon.com/Little-Schemer-Daniel-P-Friedman/dp/0262560992][The Little Schemer]] (em Scheme)
-    - Bird e Wadler - [[https://usi-pl.github.io/lc/sp-2015/doc/Bird_Wadler.%20Introduction%20to%20Functional%20Programming.1ed.pdf][Introduction to Functional Programming]] (em Miranda)
-
-  - Geradores e listas preguiçosas
-    - David M. Beazley - [[http://dabeaz.com/finalgenerator/index.html][Generators: The Final Frontier]] (em Python)
-    - Rabhi e Lapalme - [[https://www.amazon.com/dp/0201596040][Algorithms: A Functional Programming Approach]] (em Haskell)
-
-  - Javascript moderno
-    - Axel Rauschmayer - [[http://exploringjs.com/es6.html][Exploring ES6]]
-    - Axel Rauschmayer - [[http://2ality.com/index.html][2ality - Javascript and more]]
-    - Ponyfoo - [[https://ponyfoo.com/articles/es6][ES6 Overview in 350 Bullet Points]]
+  - Abelson, Sussman e Sussman - [[https://sarabander.github.io/sicp][Structure and Interpretation Of Computer Programs]] (em Lisp)
+  - Friedman e Felleisen - [[https://www.amazon.com/Little-Schemer-Daniel-P-Friedman/dp/0262560992][The Little Schemer]] (em Scheme)
+  - Bird e Wadler - [[https://usi-pl.github.io/lc/sp-2015/doc/Bird_Wadler.%20Introduction%20to%20Functional%20Programming.1ed.pdf][Introduction to Functional Programming]] (em Miranda)
+  - David M. Beazley - [[http://dabeaz.com/finalgenerator/index.html][Generators: The Final Frontier]] (em Python)
+  - Rabhi e Lapalme - [[https://www.amazon.com/dp/0201596040][Algorithms: A Functional Programming Approach]] (em Haskell)
+  - Axel Rauschmayer - [[http://exploringjs.com/es6.html][Exploring ES6]]
+  - Axel Rauschmayer - [[http://2ality.com/index.html][2ality - Javascript and more]]
+  - Ponyfoo - [[https://ponyfoo.com/articles/es6][ES6 Overview in 350 Bullet Points]]
