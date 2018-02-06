@@ -1,0 +1,557 @@
+# Local variables:
+# after-save-hook: org-reveal-export-to-html
+# end:
+#+OPTIONS: toc:nil reveal_slide_number:nil reveal_progress:nil num:nil
+#+TITLE: Geradores, promessas e estruturas funcionais em javascript
+
+* Prólogo - ES6/7/8/...
+** =const/let=
+
+/function scope/
+
+#+BEGIN_SRC javascript
+function weird () {
+  var myList = [1,2,3,4];
+  for (var i in myList) {
+    /* ... */
+  }
+
+  console.log(i); // "3" (more on this later)
+}
+#+END_SRC
+
+Calma que piora...
+#+ATTR_REVEAL: :frag roll-in
+#+BEGIN_SRC javascript
+function weirder () {
+  var myList = [1,2,3,4];
+  for (var i in myList) {
+    /* ... */
+    var internal = 100;
+  }
+
+  internal += " xorah!"
+  console.log(internal); // "100 xorah!"
+}
+#+END_SRC
+
+** =const/let=
+
+/block scope/
+
+#+BEGIN_SRC javascript
+function sane () {
+  const myList = [1,2,3,4];
+  for (const i in myList) {
+    /* ... */
+  }
+
+  console.log(i); // ReferenceError: i is not defined
+}
+#+END_SRC
+
+** =const/let=
+
+#+BEGIN_SRC javascript
+function whyUseConst () {
+  const myList = [1,2,3,4];
+
+  myList.push(5); // not a problem
+  console.log(myList); // [1,2,3,4,5]
+
+  myList = ["not", "ok"]; // TypeError: invalid assignment to const `myList'
+  console.log(myList);
+}
+#+END_SRC
+
+#+ATTR_REVEAL: :frag roll-in
+#+BEGIN_SRC javascript
+function letLetsItChange () {
+  let myList = [1,2,3,4];
+
+  myList = ["why", "not?"];
+  console.log(myList.join(" ")); // "why not?"
+}
+
+#+END_SRC
+** /arrow functions/
+
+#+BEGIN_SRC javascript
+const numbers = [1,2,3,4,5];
+
+const awkward = numbers.findIndex(function (element) {
+  return element === 3;
+};
+#+END_SRC
+
+#+ATTR_REVEAL: :frag roll-in
+#+BEGIN_SRC javascript
+const nicer = numbers.findIndex(element => element === 3);
+#+END_SRC
+
+** Desestruturação e /rest parameters/
+#+BEGIN_SRC javascript
+const [x, y] = [1, 2];
+console.log(x); // 1
+console.log(y); // 2
+#+END_SRC
+
+#+ATTR_REVEAL: :frag roll-in
+#+BEGIN_SRC javascript
+const [head, ...tail] = [1,2,3];
+console.log(head); // 1
+console.log(tail); // [2, 3]
+console.log([...tail, ...tail]); // [2, 3, 2, 3]
+#+END_SRC
+
+#+ATTR_REVEAL: :frag roll-in
+#+BEGIN_SRC javascript
+function worksForFunctionsToo (first, ...rest) {
+  return rest.concat(first);
+}
+console.log(worksForFunctionsToo(1,2,3)); // [2, 3, 1]
+#+END_SRC
+** =for ... of=
+
+#+BEGIN_SRC javascript
+const numbers = [1,2,3,4,5];
+for (const i in numbers) {
+  const k = numbers[i];
+  console.log(i + 1); // "01", "11", etc.
+  /* ... */
+}
+#+END_SRC
+
+#+ATTR_REVEAL: :frag roll-in
+#+BEGIN_SRC javascript
+for (const number of numbers) {
+  const k = numbers;
+  /* ... */
+}
+#+END_SRC
+
+#+ATTR_REVEAL: :frag roll-in
+#+BEGIN_SRC javascript
+for (const [index, number] of numbers.entries()) {
+  const k = numbers;
+  console.log(index + 1); // 1, 2, ...
+  /* ... */
+}
+#+END_SRC
+
+** E mais...
+
+   - Promessas
+   - Geradores
+   - Funções assíncronas
+   - Módulos nativos, /proxies/, etc.
+
+* Controle de complexidade
+
+  - Abstração
+  - Composição
+
+** Abstração
+
+DRY - *D*on't *R*epeat *Y*ourself
+
+#+BEGIN_SRC javascript
+function addOne (list) {
+  const newList = [];
+  for (const element of list) {
+    newList.push(element + 1);
+  }
+
+  return newList;
+}
+
+function square (list) {
+  const newList = [];
+  for (const element of list) {
+    newList.push(element * element);
+  }
+
+  return newList;
+}
+#+END_SRC
+
+** Abstração
+
+#+BEGIN_SRC javascript
+function map (list, fn) {
+  const newList = [];
+  for (let element of list) {
+    newList.push(fn(element));
+  }
+
+  return newList;
+}
+
+const addOne = (list) => map(list, x => x+1);
+const square = (list) => map(list, x => x*x);
+#+END_SRC
+
+** Abstração
+
+#+BEGIN_SRC javascript
+  function popToaster (message, timeout, type) {
+    toaster.pop({
+      type,
+      title: '',
+      body: message,
+      showCloseButton: true,
+      timeout
+    });
+  }
+
+  function showErrorToaster (message, timeout = 2000) {
+    popToaster(message, timeout, 'error');
+  }
+
+  function showInfoToaster (message, timeout = 2000) {
+    popToaster(message, timeout, 'info');
+  }
+
+  function showSuccessToaster (message, timeout = 2000) {
+    popToaster(message, timeout, 'success');
+  }
+#+END_SRC
+** Composição
+
+#+BEGIN_SRC javascript
+let x = 1;
+
+function globalsDontCompose () {
+  x += x;
+}
+
+globalsDontCompose(); // x = 2
+const TwoX = x;
+
+globalsDontCompose(); // x = 4
+const FourX = x;
+#+END_SRC
+
+#+ATTR_REVEAL: :frag roll-in
+#+BEGIN_SRC javascript
+const x = 1;
+
+function timesTwo (n) {
+  return 2*n;
+}
+
+const TwoX = timesTwo(x);
+const FourX = timesTwo(timesTwo(x)); // etc...
+#+END_SRC
+
+#+ATTR_REVEAL: :frag roll-in
+#+BEGIN_SRC javascript
+const compose = f => g => (x) => f(g(x));
+const timesFour = compose(timesTwo)(timesTwo);
+const nthPowerOfTwo = n => [...range(n-1)].reduce(compose(timesTwo), x => x)(2);
+console.log(nthPowerOfTwo(10)); // 1024
+#+END_SRC
+
+* Processamento de listas
+  - =map=
+  - =filter=
+  - =reduce=
+
+** =map=
+
+   Listas → Listas de mesmo tamanho
+
+#+BEGIN_SRC javascript
+// modelo
+function mapModel (list, functionToApply) {
+  const mappedList = [];
+  for (const element of list) {
+    mappedList.push(functionToApply(element));
+  }
+  return mappedList;
+}
+#+END_SRC
+
+#+ATTR_REVEAL: :frag roll-in
+   #+BEGIN_SRC javascript
+   const list1 = [1, 2, 3, 4, 5];
+   const list2 = list1.map(x => x*x); // [1, 4, 9, 16, 25]
+   const list3 = list1.map(timesTwo).map(square); // [4, 16, 36, 64, 100]
+   #+END_SRC
+
+** =filter=
+
+   Listas → Listas potencialmente menores
+
+#+BEGIN_SRC javascript
+function filterModel (list, predicate) {
+  const filteredList = [];
+  for (const element of list) {
+    if (predicate(element)) {
+      filteredList.push(element);
+    }
+  }
+  return filteredList;
+}
+#+END_SRC
+
+#+ATTR_REVEAL: :frag roll-in
+#+BEGIN_SRC javascript
+const isEven = x => x % 2 === 0;
+console.log([1,2,3,4,5].filter(isEven)); // [2, 4]
+#+END_SRC
+
+#+ATTR_REVEAL: :frag roll-in
+#+BEGIN_SRC javascript
+function removeIfContains (list, elementToRemove) {
+  return list.filter(element => element !== elementToRemove);
+}
+#+END_SRC
+
+** =reduce=
+
+   Lista → Combinação de elementos da lista original
+
+#+BEGIN_SRC javascript
+function reduceModel (list, combineFunction, initialValue) {
+  // note the different number of arguments
+  let result = initialValue;
+  for (const element of list) {
+    result = combineFunction(result, element);
+  }
+  return result;
+}
+#+END_SRC
+
+#+ATTR_REVEAL: :frag roll-in
+#+BEGIN_SRC javascript
+const listSum = list => list.reduce((a, b) => a + b, 0);
+const listProduct = list => list.reduce((a, b) => a * b, 1);
+const flatten = listOfLists => listOfLists.reduce(
+  (flattened, element) => flattened.concat(element), []);
+
+console.log(listSum([1,2,3,4,5,6,7,8,9,10])); // 55
+console.log(listProduct([1,2,3,4,5])); // 120
+console.log(flatten([[1, 2], 3, [], [4]]); // [1,2,3,4]
+#+END_SRC
+
+** Argumentos adicionais
+
+#+BEGIN_SRC javascript
+function removeRepetitions (list) {
+  return list.filter(
+    (element, index, originalArray) => (index === originalArray.indexOf(element)));
+#+END_SRC
+
+* Geradores
+Interrupção/continuação do fluxo de controle.
+
+#+BEGIN_SRC javascript
+function *helloGenerator () {
+  /* anything here will be done before the line below */
+  yield 1;
+  /* anything here will be done before the line below */
+  yield 2;
+  /* anything here will be done before the line below */
+  yield 3;
+}
+
+const hello = helloGenerator();
+console.log(hello.next().value); // 1
+console.log(hello.next().value); // 2
+console.log(hello.next().value); // 3
+#+END_SRC
+
+#+ATTR_REVEAL: :frag roll-in
+#+BEGIN_SRC javascript
+console.log(hello.next().value); // undefined
+#+END_SRC
+
+#+ATTR_REVEAL: :frag roll-in
+#+BEGIN_SRC javascript
+for (const i of helloGenerator()) {
+  console.log(i);
+}
+// > 1
+// > 2
+// > 3
+#+END_SRC
+
+** Vantagens
+Uso de espaço constante, sem listas intermediárias.
+
+#+BEGIN_SRC javascript
+// Space complexity: O(n)
+function dumbRange (n) {
+  // obs: found in viewPanels.controller.js
+  const numbers = [];
+  for (let i = 0; i < n; i++) {
+    numbers.push(i);
+  }
+  return numbers;
+}
+#+END_SRC
+
+#+BEGIN_SRC javascript
+// Space complexity: O(1)
+function *smartRange (n) {
+  for (let i = 0; i < n; i++) {
+    yield i;
+  }
+}
+#+END_SRC
+
+** Vantagens
+
+Processamento de listas em uma única passada (listas preguiçosas).
+
+#+BEGIN_SRC javascript
+const dumbSquaredEvensSum = // 4 passes
+  (n) => dumbRange(n).filter(isEven).map(square).reduce((a, b) => a+b, 0);
+
+function reduce (iterator, combineFunction, initialValue) {
+  let result = initialValue;
+  for (const element of iterator) {
+    result = combineFunction(result, element);
+  }
+  return result;
+}
+
+const iteratorSum = (iterator) => reduce(iterator, (a, b) => a + b, 0);
+const smartSquaredEvensSum = // One single pass
+  (n) => iteratorSum(smartRange(n).filter(isEven).map(square));
+#+END_SRC
+
+#+ATTR_REVEAL: :frag roll-in
+Geradores podem ser infinitos!
+
+#+BEGIN_SRC javascript
+function *zeroToInfinity () {
+  let n = 0;
+  while (true) {
+    yield n;
+    n++;
+  }
+}
+
+const allPrimes = zeroToInfinity().filter(isPrime).forEach(console.log);
+#+END_SRC
+
+#+ATTR_REVEAL: :frag roll-in
+#+BEGIN_SRC javascript
+function *readYuuuugeFile (fileDescriptor) {
+  let line = fileDescriptor.readLine();
+  while (line) {
+    yield line;
+    line = fileDescriptor.readLine();
+  }
+}
+
+const lengthOfWholeFile = fileDescriptor => iteratorSum(readYuuuugeFile(fileDescriptor).map(line => line.length));
+#+END_SRC
+
+* Promessas
+
+Computações assíncronas.
+
+#+BEGIN_SRC javascript
+doSomethingAsynchronously()
+  .then(doSomethingElse)
+  .then(andThenAnotherThing)
+  .then(andYetAnother) // ...
+#+END_SRC
+
+#+ATTR_REVEAL: :frag roll-in
+Anatomia de uma promessa:
+
+#+BEGIN_SRC javascript
+const pendingPromise = {
+  state: "pending",
+}
+
+const resolvedPromise = {
+  state: "fulfilled",
+  value: 1;
+}
+
+const rejectedPromise = {
+  state: "rejected"
+}
+#+END_SRC
+
+** =Promise.all=
+
+#+BEGIN_SRC javascript
+const firstRequest = $http.get("/blablabla").then(doSomething);
+const secondRequest = $http.get("/whatever").then(doAnotherThing);
+
+Promise.all(firstRequest, secondRequest)
+  .then([firstResult, secondResult] => doSomethingWithTheTwo(firstResult, secondResult));
+
+#+END_SRC
+
+** Exceções
+
+#+BEGIN_SRC javascript
+function processRequest (requestRoute) {
+  return $http.get(requestRoute)
+    .then(response => firstAction(response))
+    .then(firstResult => secondAction(firstResult))
+    .then(secondResult => finalAction(secondResult))
+    .catch(error => treatError(error));
+}
+#+END_SRC
+
+** =async/await=
+
+#+BEGIN_SRC javascript
+async function processRequest2 (requestRoute) {
+  try {
+    const response = await $http.get(requestRoute);
+    const result = await secondAction(firstAction(response));
+
+    return finalAction(result);
+  } catch error {
+    treatError(error);
+  }
+}
+#+END_SRC
+
+* Geradores assíncronos: A fronteira final
+
+#+BEGIN_SRC javascript
+function sleep(ms) { // https://stackoverflow.com/a/41597717/5734424
+  return new Promise(res => setTimeout(res, ms));
+}
+
+async function *pollServer (route) {
+  const sleepTime = 60000;
+  while (true) {
+    const response = await $http.get(route);
+    yield response;
+    await sleep(sleepTime);
+  }
+}
+
+async function continuouslyProcessRequests (route) {
+  for await (const response of pollServer(route)) {
+    processResponse(response);
+  }
+}
+#+END_SRC
+
+* Mais Informações
+
+  - Programação funcional
+    - Abelson, Sussman e Sussman - [[https://sarabander.github.io/sicp][Structure and Interpretation Of Computer Programs]] (em Lisp)
+    - Friedman e Felleisen - [[https://www.amazon.com/Little-Schemer-Daniel-P-Friedman/dp/0262560992][The Little Schemer]] (em Scheme)
+    - Bird e Wadler - [[https://usi-pl.github.io/lc/sp-2015/doc/Bird_Wadler.%20Introduction%20to%20Functional%20Programming.1ed.pdf][Introduction to Functional Programming]] (em Miranda)
+
+  - Geradores e listas preguiçosas
+    - David M. Beazley - [[http://dabeaz.com/finalgenerator/index.html][Generators: The Final Frontier]] (em Python)
+    - Rabhi e Lapalme - [[https://www.amazon.com/dp/0201596040][Algorithms: A Functional Programming Approach]] (em Haskell)
+
+  - Javascript moderno
+    - Axel Rauschmayer - [[http://exploringjs.com/es6.html][Exploring ES6]]
+    - Axel Rauschmayer - [[http://2ality.com/index.html][2ality - Javascript and more]]
+    - Ponyfoo - [[https://ponyfoo.com/articles/es6][ES6 Overview in 350 Bullet Points]]

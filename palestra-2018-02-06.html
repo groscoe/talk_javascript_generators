@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Geradores, promessas e estruturas funcionais em javascript</title>
+<meta name="author" content="(Gustavo Roscoe)"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="http://cdn.jsdelivr.net/reveal.js/3.0.0/css/reveal.css"/>
+
+<link rel="stylesheet" href="http://cdn.jsdelivr.net/reveal.js/3.0.0/css/theme/moon.css" id="theme"/>
+
+
+<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+<script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = 'http://cdn.jsdelivr.net/reveal.js/3.0.0/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+</script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide"><h1 class='title'>Geradores, promessas e estruturas funcionais em javascript</h1>
+</section>
+
+<section>
+<section id="slide-org50835f2">
+<h2 id="org50835f2">Prólogo - ES6/7/8/&#x2026;</h2>
+<div class="outline-text-2" id="text-org50835f2">
+</div>
+</section>
+<section id="slide-orgee4075a">
+<h3 id="orgee4075a"><code>const/let</code></h3>
+<p>
+<i>function scope</i>
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">weird</span> <span style="color: #4f97d7;">()</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">var</span> <span style="color: #61afef;">myList</span> = <span style="color: #bc6ec5;">[</span><span style="color: #da8548; font-weight: bold;">1</span>,<span style="color: #da8548; font-weight: bold;">2</span>,<span style="color: #da8548; font-weight: bold;">3</span>,<span style="color: #da8548; font-weight: bold;">4</span><span style="color: #bc6ec5;">]</span>;
+  <span style="color: #c678dd; font-weight: bold;">for</span> <span style="color: #bc6ec5;">(</span><span style="color: #c678dd; font-weight: bold;">var</span> <span style="color: #61afef;">i</span> <span style="color: #c678dd; font-weight: bold;">in</span> myList<span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    <span style="color: #687080; background-color: #292e34; font-style: italic;">/* </span><span style="color: #687080; background-color: #292e34; font-style: italic;">... */</span>
+  <span style="color: #bc6ec5;">}</span>
+
+  console.log<span style="color: #bc6ec5;">(</span>i<span style="color: #bc6ec5;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">"3" (more on this later)</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+Calma que piora&#x2026;
+</p>
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">weirder</span> <span style="color: #4f97d7;">()</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">var</span> <span style="color: #61afef;">myList</span> = <span style="color: #bc6ec5;">[</span><span style="color: #da8548; font-weight: bold;">1</span>,<span style="color: #da8548; font-weight: bold;">2</span>,<span style="color: #da8548; font-weight: bold;">3</span>,<span style="color: #da8548; font-weight: bold;">4</span><span style="color: #bc6ec5;">]</span>;
+  <span style="color: #c678dd; font-weight: bold;">for</span> <span style="color: #bc6ec5;">(</span><span style="color: #c678dd; font-weight: bold;">var</span> <span style="color: #61afef;">i</span> <span style="color: #c678dd; font-weight: bold;">in</span> myList<span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    <span style="color: #687080; background-color: #292e34; font-style: italic;">/* </span><span style="color: #687080; background-color: #292e34; font-style: italic;">... */</span>
+    <span style="color: #c678dd; font-weight: bold;">var</span> <span style="color: #61afef;">internal</span> = <span style="color: #da8548; font-weight: bold;">100</span>;
+  <span style="color: #bc6ec5;">}</span>
+
+  internal += <span style="color: #98be65;">" xorah!"</span>
+  console.log<span style="color: #bc6ec5;">(</span>internal<span style="color: #bc6ec5;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">"100 xorah!"</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-org7ce9a40">
+<h3 id="org7ce9a40"><code>const/let</code></h3>
+<p>
+<i>block scope</i>
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">sane</span> <span style="color: #4f97d7;">()</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">myList</span> = <span style="color: #bc6ec5;">[</span><span style="color: #da8548; font-weight: bold;">1</span>,<span style="color: #da8548; font-weight: bold;">2</span>,<span style="color: #da8548; font-weight: bold;">3</span>,<span style="color: #da8548; font-weight: bold;">4</span><span style="color: #bc6ec5;">]</span>;
+  <span style="color: #c678dd; font-weight: bold;">for</span> <span style="color: #bc6ec5;">(</span><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">i</span> <span style="color: #c678dd; font-weight: bold;">in</span> myList<span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    <span style="color: #687080; background-color: #292e34; font-style: italic;">/* </span><span style="color: #687080; background-color: #292e34; font-style: italic;">... */</span>
+  <span style="color: #bc6ec5;">}</span>
+
+  console.log<span style="color: #bc6ec5;">(</span>i<span style="color: #bc6ec5;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">ReferenceError: i is not defined</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-orge5cefa6">
+<h3 id="orge5cefa6"><code>const/let</code></h3>
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">whyUseConst</span> <span style="color: #4f97d7;">()</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">myList</span> = <span style="color: #bc6ec5;">[</span><span style="color: #da8548; font-weight: bold;">1</span>,<span style="color: #da8548; font-weight: bold;">2</span>,<span style="color: #da8548; font-weight: bold;">3</span>,<span style="color: #da8548; font-weight: bold;">4</span><span style="color: #bc6ec5;">]</span>;
+
+  myList.push<span style="color: #bc6ec5;">(</span><span style="color: #da8548; font-weight: bold;">5</span><span style="color: #bc6ec5;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">not a problem</span>
+  console.log<span style="color: #bc6ec5;">(</span>myList<span style="color: #bc6ec5;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">[1,2,3,4,5]</span>
+
+  myList = <span style="color: #bc6ec5;">[</span><span style="color: #98be65;">"not"</span>, <span style="color: #98be65;">"ok"</span><span style="color: #bc6ec5;">]</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">TypeError: invalid assignment to const `myList'</span>
+  console.log<span style="color: #bc6ec5;">(</span>myList<span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">letLetsItChange</span> <span style="color: #4f97d7;">()</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">let</span> <span style="color: #61afef;">myList</span> = <span style="color: #bc6ec5;">[</span><span style="color: #da8548; font-weight: bold;">1</span>,<span style="color: #da8548; font-weight: bold;">2</span>,<span style="color: #da8548; font-weight: bold;">3</span>,<span style="color: #da8548; font-weight: bold;">4</span><span style="color: #bc6ec5;">]</span>;
+
+  myList = <span style="color: #bc6ec5;">[</span><span style="color: #98be65;">"why"</span>, <span style="color: #98be65;">"not?"</span><span style="color: #bc6ec5;">]</span>;
+  console.log<span style="color: #bc6ec5;">(</span>myList.join<span style="color: #2d9574;">(</span><span style="color: #98be65;">" "</span><span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">"why not?"</span>
+<span style="color: #4f97d7;">}</span>
+
+</pre>
+</div>
+</section>
+<section id="slide-orgb874889">
+<h3 id="orgb874889"><i>arrow functions</i></h3>
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">numbers</span> = <span style="color: #4f97d7;">[</span><span style="color: #da8548; font-weight: bold;">1</span>,<span style="color: #da8548; font-weight: bold;">2</span>,<span style="color: #da8548; font-weight: bold;">3</span>,<span style="color: #da8548; font-weight: bold;">4</span>,<span style="color: #da8548; font-weight: bold;">5</span><span style="color: #4f97d7;">]</span>;
+
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">awkward</span> = numbers.findIndex<span style="color: #4f97d7;">(</span><span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #bc6ec5;">(</span><span style="color: #61afef;">element</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">return</span> element === <span style="color: #da8548; font-weight: bold;">3</span>;
+<span style="color: #bc6ec5;">}</span>;
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">nicer</span> = numbers.findIndex<span style="color: #4f97d7;">(</span>element =&gt; element === <span style="color: #da8548; font-weight: bold;">3</span><span style="color: #4f97d7;">)</span>;
+</pre>
+</div>
+
+</section>
+<section id="slide-org75c809d">
+<h3 id="org75c809d">Desestruturação e <i>rest parameters</i></h3>
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #4f97d7;">[</span><span style="color: #61afef;">x</span>, <span style="color: #61afef;">y</span><span style="color: #4f97d7;">]</span> = <span style="color: #4f97d7;">[</span><span style="color: #da8548; font-weight: bold;">1</span>, <span style="color: #da8548; font-weight: bold;">2</span><span style="color: #4f97d7;">]</span>;
+console.log<span style="color: #4f97d7;">(</span>x<span style="color: #4f97d7;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">1</span>
+console.log<span style="color: #4f97d7;">(</span>y<span style="color: #4f97d7;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">2</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #4f97d7;">[</span>head, ...tail<span style="color: #4f97d7;">]</span> = <span style="color: #4f97d7;">[</span><span style="color: #da8548; font-weight: bold;">1</span>,<span style="color: #da8548; font-weight: bold;">2</span>,<span style="color: #da8548; font-weight: bold;">3</span><span style="color: #4f97d7;">]</span>;
+console.log<span style="color: #4f97d7;">(</span>head<span style="color: #4f97d7;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">1</span>
+console.log<span style="color: #4f97d7;">(</span>tail<span style="color: #4f97d7;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">[2, 3]</span>
+console.log<span style="color: #4f97d7;">(</span><span style="color: #bc6ec5;">[</span>...tail, ...tail<span style="color: #bc6ec5;">]</span><span style="color: #4f97d7;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">[2, 3, 2, 3]</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">worksForFunctionsToo</span> <span style="color: #4f97d7;">(</span><span style="color: #61afef;">first</span>, ...<span style="color: #61afef;">rest</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">return</span> rest.concat<span style="color: #bc6ec5;">(</span>first<span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+console.log<span style="color: #4f97d7;">(</span>worksForFunctionsToo<span style="color: #bc6ec5;">(</span><span style="color: #da8548; font-weight: bold;">1</span>,<span style="color: #da8548; font-weight: bold;">2</span>,<span style="color: #da8548; font-weight: bold;">3</span><span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">[2, 3, 1]</span>
+</pre>
+</div>
+</section>
+<section id="slide-org8538956">
+<h3 id="org8538956"><code>for ... of</code></h3>
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">numbers</span> = <span style="color: #4f97d7;">[</span><span style="color: #da8548; font-weight: bold;">1</span>,<span style="color: #da8548; font-weight: bold;">2</span>,<span style="color: #da8548; font-weight: bold;">3</span>,<span style="color: #da8548; font-weight: bold;">4</span>,<span style="color: #da8548; font-weight: bold;">5</span><span style="color: #4f97d7;">]</span>;
+<span style="color: #c678dd; font-weight: bold;">for</span> <span style="color: #4f97d7;">(</span><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">i</span> <span style="color: #c678dd; font-weight: bold;">in</span> numbers<span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">k</span> = numbers<span style="color: #bc6ec5;">[</span>i<span style="color: #bc6ec5;">]</span>;
+  console.log<span style="color: #bc6ec5;">(</span>i + <span style="color: #da8548; font-weight: bold;">1</span><span style="color: #bc6ec5;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">"01", "11", etc.</span>
+  <span style="color: #687080; background-color: #292e34; font-style: italic;">/* </span><span style="color: #687080; background-color: #292e34; font-style: italic;">... */</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #c678dd; font-weight: bold;">for</span> <span style="color: #4f97d7;">(</span><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">number</span> of numbers<span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">k</span> = numbers;
+  <span style="color: #687080; background-color: #292e34; font-style: italic;">/* </span><span style="color: #687080; background-color: #292e34; font-style: italic;">... */</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #c678dd; font-weight: bold;">for</span> <span style="color: #4f97d7;">(</span><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #bc6ec5;">[</span><span style="color: #61afef;">index</span>, <span style="color: #61afef;">number</span><span style="color: #bc6ec5;">]</span> of numbers.entries<span style="color: #bc6ec5;">()</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">k</span> = numbers;
+  console.log<span style="color: #bc6ec5;">(</span>index + <span style="color: #da8548; font-weight: bold;">1</span><span style="color: #bc6ec5;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">1, 2, ...</span>
+  <span style="color: #687080; background-color: #292e34; font-style: italic;">/* </span><span style="color: #687080; background-color: #292e34; font-style: italic;">... */</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-org058884e">
+<h3 id="org058884e">E mais&#x2026;</h3>
+<ul>
+<li>Promessas</li>
+<li>Geradores</li>
+<li>Funções assíncronas</li>
+<li>Módulos nativos, <i>proxies</i>, etc.</li>
+
+</ul>
+
+</section>
+</section>
+<section>
+<section id="slide-orgd0ced23">
+<h2 id="orgd0ced23">Controle de complexidade</h2>
+<ul>
+<li>Abstração</li>
+<li>Composição</li>
+
+</ul>
+
+</section>
+<section id="slide-orgcab40a2">
+<h3 id="orgcab40a2">Abstração</h3>
+<p>
+DRY - <b>D</b>on't <b>R</b>epeat <b>Y</b>ourself
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">addOne</span> <span style="color: #4f97d7;">(</span><span style="color: #61afef;">list</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">newList</span> = <span style="color: #bc6ec5;">[]</span>;
+  <span style="color: #c678dd; font-weight: bold;">for</span> <span style="color: #bc6ec5;">(</span><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">element</span> of list<span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    newList.push<span style="color: #2d9574;">(</span>element + <span style="color: #da8548; font-weight: bold;">1</span><span style="color: #2d9574;">)</span>;
+  <span style="color: #bc6ec5;">}</span>
+
+  <span style="color: #c678dd; font-weight: bold;">return</span> newList;
+<span style="color: #4f97d7;">}</span>
+
+<span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">square</span> <span style="color: #4f97d7;">(</span><span style="color: #61afef;">list</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">newList</span> = <span style="color: #bc6ec5;">[]</span>;
+  <span style="color: #c678dd; font-weight: bold;">for</span> <span style="color: #bc6ec5;">(</span><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">element</span> of list<span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    newList.push<span style="color: #2d9574;">(</span>element * element<span style="color: #2d9574;">)</span>;
+  <span style="color: #bc6ec5;">}</span>
+
+  <span style="color: #c678dd; font-weight: bold;">return</span> newList;
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-org1793c01">
+<h3 id="org1793c01">Abstração</h3>
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">map</span> <span style="color: #4f97d7;">(</span><span style="color: #61afef;">list</span>, <span style="color: #61afef;">fn</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">newList</span> = <span style="color: #bc6ec5;">[]</span>;
+  <span style="color: #c678dd; font-weight: bold;">for</span> <span style="color: #bc6ec5;">(</span><span style="color: #c678dd; font-weight: bold;">let</span> <span style="color: #61afef;">element</span> of list<span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    newList.push<span style="color: #2d9574;">(</span>fn<span style="color: #67b11d;">(</span>element<span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span>;
+  <span style="color: #bc6ec5;">}</span>
+
+  <span style="color: #c678dd; font-weight: bold;">return</span> newList;
+<span style="color: #4f97d7;">}</span>
+
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">addOne</span> = <span style="color: #4f97d7;">(</span>list<span style="color: #4f97d7;">)</span> =&gt; map<span style="color: #4f97d7;">(</span>list, x =&gt; x+<span style="color: #da8548; font-weight: bold;">1</span><span style="color: #4f97d7;">)</span>;
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">square</span> = <span style="color: #4f97d7;">(</span>list<span style="color: #4f97d7;">)</span> =&gt; map<span style="color: #4f97d7;">(</span>list, x =&gt; x*x<span style="color: #4f97d7;">)</span>;
+</pre>
+</div>
+
+</section>
+<section id="slide-orge1f6fdb">
+<h3 id="orge1f6fdb">Abstração</h3>
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">popToaster</span> <span style="color: #4f97d7;">(</span><span style="color: #61afef;">message</span>, <span style="color: #61afef;">timeout</span>, <span style="color: #61afef;">type</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  toaster.pop<span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">{</span>
+    type,
+    title: <span style="color: #98be65;">''</span>,
+    body: message,
+    showCloseButton: <span style="color: #da8548; font-weight: bold;">true</span>,
+    timeout
+  <span style="color: #2d9574;">}</span><span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+
+<span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">showErrorToaster</span> <span style="color: #4f97d7;">(</span><span style="color: #61afef;">message</span>, <span style="color: #61afef;">timeout</span> = <span style="color: #da8548; font-weight: bold;">2000</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  popToaster<span style="color: #bc6ec5;">(</span>message, timeout, <span style="color: #98be65;">'error'</span><span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+
+<span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">showInfoToaster</span> <span style="color: #4f97d7;">(</span><span style="color: #61afef;">message</span>, <span style="color: #61afef;">timeout</span> = <span style="color: #da8548; font-weight: bold;">2000</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  popToaster<span style="color: #bc6ec5;">(</span>message, timeout, <span style="color: #98be65;">'info'</span><span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+
+<span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">showSuccessToaster</span> <span style="color: #4f97d7;">(</span><span style="color: #61afef;">message</span>, <span style="color: #61afef;">timeout</span> = <span style="color: #da8548; font-weight: bold;">2000</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  popToaster<span style="color: #bc6ec5;">(</span>message, timeout, <span style="color: #98be65;">'success'</span><span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+</section>
+<section id="slide-orgf72bda1">
+<h3 id="orgf72bda1">Composição</h3>
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">let</span> <span style="color: #61afef;">x</span> = <span style="color: #da8548; font-weight: bold;">1</span>;
+
+<span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">globalsDontCompose</span> <span style="color: #4f97d7;">()</span> <span style="color: #4f97d7;">{</span>
+  x += x;
+<span style="color: #4f97d7;">}</span>
+
+globalsDontCompose<span style="color: #4f97d7;">()</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">x = 2</span>
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">TwoX</span> = x;
+
+globalsDontCompose<span style="color: #4f97d7;">()</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">x = 4</span>
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">FourX</span> = x;
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">x</span> = <span style="color: #da8548; font-weight: bold;">1</span>;
+
+<span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">timesTwo</span> <span style="color: #4f97d7;">(</span><span style="color: #61afef;">n</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">return</span> <span style="color: #da8548; font-weight: bold;">2</span>*n;
+<span style="color: #4f97d7;">}</span>
+
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">TwoX</span> = timesTwo<span style="color: #4f97d7;">(</span>x<span style="color: #4f97d7;">)</span>;
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">FourX</span> = timesTwo<span style="color: #4f97d7;">(</span>timesTwo<span style="color: #bc6ec5;">(</span>x<span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">etc...</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">compose</span> = f =&gt; g =&gt; <span style="color: #4f97d7;">(</span>x<span style="color: #4f97d7;">)</span> =&gt; f<span style="color: #4f97d7;">(</span>g<span style="color: #bc6ec5;">(</span>x<span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">)</span>;
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">timesFour</span> = compose<span style="color: #4f97d7;">(</span>timesTwo<span style="color: #4f97d7;">)(</span>timesTwo<span style="color: #4f97d7;">)</span>;
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">nthPowerOfTwo</span> = n =&gt; <span style="color: #4f97d7;">[</span>...range<span style="color: #bc6ec5;">(</span>n-<span style="color: #da8548; font-weight: bold;">1</span><span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">]</span>.reduce<span style="color: #4f97d7;">(</span>compose<span style="color: #bc6ec5;">(</span>timesTwo<span style="color: #bc6ec5;">)</span>, x =&gt; x<span style="color: #4f97d7;">)(</span><span style="color: #da8548; font-weight: bold;">2</span><span style="color: #4f97d7;">)</span>;
+console.log<span style="color: #4f97d7;">(</span>nthPowerOfTwo<span style="color: #bc6ec5;">(</span><span style="color: #da8548; font-weight: bold;">10</span><span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">1024</span>
+</pre>
+</div>
+
+</section>
+</section>
+<section>
+<section id="slide-orgde4e829">
+<h2 id="orgde4e829">Processamento de listas</h2>
+<ul>
+<li><code>map</code></li>
+<li><code>filter</code></li>
+<li><code>reduce</code></li>
+
+</ul>
+
+</section>
+<section id="slide-org3ec9948">
+<h3 id="org3ec9948"><code>map</code></h3>
+<p>
+Listas → Listas de mesmo tamanho
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">modelo</span>
+<span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">mapModel</span> <span style="color: #4f97d7;">(</span><span style="color: #61afef;">list</span>, <span style="color: #61afef;">functionToApply</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">mappedList</span> = <span style="color: #bc6ec5;">[]</span>;
+  <span style="color: #c678dd; font-weight: bold;">for</span> <span style="color: #bc6ec5;">(</span><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">element</span> of list<span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    mappedList.push<span style="color: #2d9574;">(</span>functionToApply<span style="color: #67b11d;">(</span>element<span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span>;
+  <span style="color: #bc6ec5;">}</span>
+  <span style="color: #c678dd; font-weight: bold;">return</span> mappedList;
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">list1</span> = <span style="color: #4f97d7;">[</span><span style="color: #da8548; font-weight: bold;">1</span>, <span style="color: #da8548; font-weight: bold;">2</span>, <span style="color: #da8548; font-weight: bold;">3</span>, <span style="color: #da8548; font-weight: bold;">4</span>, <span style="color: #da8548; font-weight: bold;">5</span><span style="color: #4f97d7;">]</span>;
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">list2</span> = list1.map<span style="color: #4f97d7;">(</span>x =&gt; x*x<span style="color: #4f97d7;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">[1, 4, 9, 16, 25]</span>
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">list3</span> = list1.map<span style="color: #4f97d7;">(</span>timesTwo<span style="color: #4f97d7;">)</span>.map<span style="color: #4f97d7;">(</span>square<span style="color: #4f97d7;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">[4, 16, 36, 64, 100]</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-orgb75b0c9">
+<h3 id="orgb75b0c9"><code>filter</code></h3>
+<p>
+Listas → Listas potencialmente menores
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">filterModel</span> <span style="color: #4f97d7;">(</span><span style="color: #61afef;">list</span>, <span style="color: #61afef;">predicate</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">filteredList</span> = <span style="color: #bc6ec5;">[]</span>;
+  <span style="color: #c678dd; font-weight: bold;">for</span> <span style="color: #bc6ec5;">(</span><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">element</span> of list<span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    <span style="color: #c678dd; font-weight: bold;">if</span> <span style="color: #2d9574;">(</span>predicate<span style="color: #67b11d;">(</span>element<span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span> <span style="color: #2d9574;">{</span>
+      filteredList.push<span style="color: #67b11d;">(</span>element<span style="color: #67b11d;">)</span>;
+    <span style="color: #2d9574;">}</span>
+  <span style="color: #bc6ec5;">}</span>
+  <span style="color: #c678dd; font-weight: bold;">return</span> filteredList;
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">isEven</span> = x =&gt; x % <span style="color: #da8548; font-weight: bold;">2</span> === <span style="color: #da8548; font-weight: bold;">0</span>;
+console.log<span style="color: #4f97d7;">(</span><span style="color: #bc6ec5;">[</span><span style="color: #da8548; font-weight: bold;">1</span>,<span style="color: #da8548; font-weight: bold;">2</span>,<span style="color: #da8548; font-weight: bold;">3</span>,<span style="color: #da8548; font-weight: bold;">4</span>,<span style="color: #da8548; font-weight: bold;">5</span><span style="color: #bc6ec5;">]</span>.filter<span style="color: #bc6ec5;">(</span>isEven<span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">[2, 4]</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">removeIfContains</span> <span style="color: #4f97d7;">(</span><span style="color: #61afef;">list</span>, <span style="color: #61afef;">elementToRemove</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">return</span> list.filter<span style="color: #bc6ec5;">(</span>element =&gt; element !== elementToRemove<span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-orga48ebc7">
+<h3 id="orga48ebc7"><code>reduce</code></h3>
+<p>
+Lista → Combinação de elementos da lista original
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">reduceModel</span> <span style="color: #4f97d7;">(</span><span style="color: #61afef;">list</span>, <span style="color: #61afef;">combineFunction</span>, <span style="color: #61afef;">initialValue</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">note the different number of arguments</span>
+  <span style="color: #c678dd; font-weight: bold;">let</span> <span style="color: #61afef;">result</span> = initialValue;
+  <span style="color: #c678dd; font-weight: bold;">for</span> <span style="color: #bc6ec5;">(</span><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">element</span> of list<span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    result = combineFunction<span style="color: #2d9574;">(</span>result, element<span style="color: #2d9574;">)</span>;
+  <span style="color: #bc6ec5;">}</span>
+  <span style="color: #c678dd; font-weight: bold;">return</span> result;
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">listSum</span> = list =&gt; list.reduce<span style="color: #4f97d7;">(</span><span style="color: #bc6ec5;">(</span>a, b<span style="color: #bc6ec5;">)</span> =&gt; a + b, <span style="color: #da8548; font-weight: bold;">0</span><span style="color: #4f97d7;">)</span>;
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">listProduct</span> = list =&gt; list.reduce<span style="color: #4f97d7;">(</span><span style="color: #bc6ec5;">(</span>a, b<span style="color: #bc6ec5;">)</span> =&gt; a * b, <span style="color: #da8548; font-weight: bold;">1</span><span style="color: #4f97d7;">)</span>;
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">flatten</span> = listOfLists =&gt; listOfLists.reduce<span style="color: #4f97d7;">(</span>
+  <span style="color: #bc6ec5;">(</span>flattened, element<span style="color: #bc6ec5;">)</span> =&gt; flattened.concat<span style="color: #bc6ec5;">(</span>element<span style="color: #bc6ec5;">)</span>, <span style="color: #bc6ec5;">[]</span><span style="color: #4f97d7;">)</span>;
+
+console.log<span style="color: #4f97d7;">(</span>listSum<span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">[</span><span style="color: #da8548; font-weight: bold;">1</span>,<span style="color: #da8548; font-weight: bold;">2</span>,<span style="color: #da8548; font-weight: bold;">3</span>,<span style="color: #da8548; font-weight: bold;">4</span>,<span style="color: #da8548; font-weight: bold;">5</span>,<span style="color: #da8548; font-weight: bold;">6</span>,<span style="color: #da8548; font-weight: bold;">7</span>,<span style="color: #da8548; font-weight: bold;">8</span>,<span style="color: #da8548; font-weight: bold;">9</span>,<span style="color: #da8548; font-weight: bold;">10</span><span style="color: #2d9574;">]</span><span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">55</span>
+console.log<span style="color: #4f97d7;">(</span>listProduct<span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">[</span><span style="color: #da8548; font-weight: bold;">1</span>,<span style="color: #da8548; font-weight: bold;">2</span>,<span style="color: #da8548; font-weight: bold;">3</span>,<span style="color: #da8548; font-weight: bold;">4</span>,<span style="color: #da8548; font-weight: bold;">5</span><span style="color: #2d9574;">]</span><span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">120</span>
+console.log<span style="color: #4f97d7;">(</span>flatten<span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">[</span><span style="color: #67b11d;">[</span><span style="color: #da8548; font-weight: bold;">1</span>, <span style="color: #da8548; font-weight: bold;">2</span><span style="color: #67b11d;">]</span>, <span style="color: #da8548; font-weight: bold;">3</span>, <span style="color: #67b11d;">[]</span>, <span style="color: #67b11d;">[</span><span style="color: #da8548; font-weight: bold;">4</span><span style="color: #67b11d;">]</span><span style="color: #2d9574;">]</span><span style="color: #bc6ec5;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">[1,2,3,4]</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-orgff6128f">
+<h3 id="orgff6128f">Argumentos adicionais</h3>
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">removeRepetitions</span> <span style="color: #4f97d7;">(</span><span style="color: #61afef;">list</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">return</span> list.filter<span style="color: #bc6ec5;">(</span>
+    <span style="color: #2d9574;">(</span>element, index, originalArray<span style="color: #2d9574;">)</span> =&gt; <span style="color: #2d9574;">(</span>index === originalArray.indexOf<span style="color: #67b11d;">(</span>element<span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>;
+</pre>
+</div>
+
+</section>
+</section>
+<section>
+<section id="slide-org79a9db1">
+<h2 id="org79a9db1">Geradores</h2>
+<p>
+Interrupção/continuação do fluxo de controle.
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">function</span> *<span style="color: #61afef; font-weight: bold;">helloGenerator</span> <span style="color: #4f97d7;">()</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #687080; background-color: #292e34; font-style: italic;">/* </span><span style="color: #687080; background-color: #292e34; font-style: italic;">anything here will be done before the line below */</span>
+  <span style="color: #c678dd; font-weight: bold;">yield</span> <span style="color: #da8548; font-weight: bold;">1</span>;
+  <span style="color: #687080; background-color: #292e34; font-style: italic;">/* </span><span style="color: #687080; background-color: #292e34; font-style: italic;">anything here will be done before the line below */</span>
+  <span style="color: #c678dd; font-weight: bold;">yield</span> <span style="color: #da8548; font-weight: bold;">2</span>;
+  <span style="color: #687080; background-color: #292e34; font-style: italic;">/* </span><span style="color: #687080; background-color: #292e34; font-style: italic;">anything here will be done before the line below */</span>
+  <span style="color: #c678dd; font-weight: bold;">yield</span> <span style="color: #da8548; font-weight: bold;">3</span>;
+<span style="color: #4f97d7;">}</span>
+
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">hello</span> = helloGenerator<span style="color: #4f97d7;">()</span>;
+console.log<span style="color: #4f97d7;">(</span>hello.next<span style="color: #bc6ec5;">()</span>.value<span style="color: #4f97d7;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">1</span>
+console.log<span style="color: #4f97d7;">(</span>hello.next<span style="color: #bc6ec5;">()</span>.value<span style="color: #4f97d7;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">2</span>
+console.log<span style="color: #4f97d7;">(</span>hello.next<span style="color: #bc6ec5;">()</span>.value<span style="color: #4f97d7;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">3</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in">console.log<span style="color: #4f97d7;">(</span>hello.next<span style="color: #bc6ec5;">()</span>.value<span style="color: #4f97d7;">)</span>; <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">undefined</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #c678dd; font-weight: bold;">for</span> <span style="color: #4f97d7;">(</span><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">i</span> of helloGenerator<span style="color: #bc6ec5;">()</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  console.log<span style="color: #bc6ec5;">(</span>i<span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+<span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">&gt; 1</span>
+<span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">&gt; 2</span>
+<span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">&gt; 3</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-orgca91cd9">
+<h3 id="orgca91cd9">Vantagens</h3>
+<p>
+Uso de espaço constante, sem listas intermediárias.
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">Space complexity: O(n)</span>
+<span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">dumbRange</span> <span style="color: #4f97d7;">(</span><span style="color: #61afef;">n</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">obs: found in viewPanels.controller.js</span>
+  <span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">numbers</span> = <span style="color: #bc6ec5;">[]</span>;
+  <span style="color: #c678dd; font-weight: bold;">for</span> <span style="color: #bc6ec5;">(</span><span style="color: #c678dd; font-weight: bold;">let</span> <span style="color: #61afef;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; n; i++<span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    numbers.push<span style="color: #2d9574;">(</span>i<span style="color: #2d9574;">)</span>;
+  <span style="color: #bc6ec5;">}</span>
+  <span style="color: #c678dd; font-weight: bold;">return</span> numbers;
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">Space complexity: O(1)</span>
+<span style="color: #c678dd; font-weight: bold;">function</span> *<span style="color: #61afef; font-weight: bold;">smartRange</span> <span style="color: #4f97d7;">(</span>n<span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">for</span> <span style="color: #bc6ec5;">(</span><span style="color: #c678dd; font-weight: bold;">let</span> <span style="color: #61afef;">i</span> = <span style="color: #da8548; font-weight: bold;">0</span>; i &lt; n; i++<span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    <span style="color: #c678dd; font-weight: bold;">yield</span> i;
+  <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-org4306f22">
+<h3 id="org4306f22">Vantagens</h3>
+<p>
+Processamento de listas em uma única passada (listas preguiçosas).
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">dumbSquaredEvensSum</span> = <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">4 passes</span>
+  <span style="color: #4f97d7;">(</span>n<span style="color: #4f97d7;">)</span> =&gt; dumbRange<span style="color: #4f97d7;">(</span>n<span style="color: #4f97d7;">)</span>.filter<span style="color: #4f97d7;">(</span>isEven<span style="color: #4f97d7;">)</span>.map<span style="color: #4f97d7;">(</span>square<span style="color: #4f97d7;">)</span>.reduce<span style="color: #4f97d7;">(</span><span style="color: #bc6ec5;">(</span>a, b<span style="color: #bc6ec5;">)</span> =&gt; a+b, <span style="color: #da8548; font-weight: bold;">0</span><span style="color: #4f97d7;">)</span>;
+
+<span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">reduce</span> <span style="color: #4f97d7;">(</span><span style="color: #61afef;">iterator</span>, <span style="color: #61afef;">combineFunction</span>, <span style="color: #61afef;">initialValue</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">let</span> <span style="color: #61afef;">result</span> = initialValue;
+  <span style="color: #c678dd; font-weight: bold;">for</span> <span style="color: #bc6ec5;">(</span><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">element</span> of iterator<span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    result = combineFunction<span style="color: #2d9574;">(</span>result, element<span style="color: #2d9574;">)</span>;
+  <span style="color: #bc6ec5;">}</span>
+  <span style="color: #c678dd; font-weight: bold;">return</span> result;
+<span style="color: #4f97d7;">}</span>
+
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">iteratorSum</span> = <span style="color: #4f97d7;">(</span>iterator<span style="color: #4f97d7;">)</span> =&gt; reduce<span style="color: #4f97d7;">(</span>iterator, <span style="color: #bc6ec5;">(</span>a, b<span style="color: #bc6ec5;">)</span> =&gt; a + b, <span style="color: #da8548; font-weight: bold;">0</span><span style="color: #4f97d7;">)</span>;
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">smartSquaredEvensSum</span> = <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">One single pass</span>
+  <span style="color: #4f97d7;">(</span>n<span style="color: #4f97d7;">)</span> =&gt; iteratorSum<span style="color: #4f97d7;">(</span>smartRange<span style="color: #bc6ec5;">(</span>n<span style="color: #bc6ec5;">)</span>.filter<span style="color: #bc6ec5;">(</span>isEven<span style="color: #bc6ec5;">)</span>.map<span style="color: #bc6ec5;">(</span>square<span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">)</span>;
+</pre>
+</div>
+
+<p class="fragment roll-in">
+Geradores podem ser infinitos!
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">function</span> *<span style="color: #61afef; font-weight: bold;">zeroToInfinity</span> <span style="color: #4f97d7;">()</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">let</span> <span style="color: #61afef;">n</span> = <span style="color: #da8548; font-weight: bold;">0</span>;
+  <span style="color: #c678dd; font-weight: bold;">while</span> <span style="color: #bc6ec5;">(</span><span style="color: #da8548; font-weight: bold;">true</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    <span style="color: #c678dd; font-weight: bold;">yield</span> n;
+    n++;
+  <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
+
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">allPrimes</span> = zeroToInfinity<span style="color: #4f97d7;">()</span>.filter<span style="color: #4f97d7;">(</span>isPrime<span style="color: #4f97d7;">)</span>.forEach<span style="color: #4f97d7;">(</span>console.log<span style="color: #4f97d7;">)</span>;
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre  class="fragment roll-in"><span style="color: #c678dd; font-weight: bold;">function</span> *<span style="color: #61afef; font-weight: bold;">readYuuuugeFile</span> <span style="color: #4f97d7;">(</span>fileDescriptor<span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">let</span> <span style="color: #61afef;">line</span> = fileDescriptor.readLine<span style="color: #bc6ec5;">()</span>;
+  <span style="color: #c678dd; font-weight: bold;">while</span> <span style="color: #bc6ec5;">(</span>line<span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    <span style="color: #c678dd; font-weight: bold;">yield</span> line;
+    line = fileDescriptor.readLine<span style="color: #2d9574;">()</span>;
+  <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
+
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">lengthOfWholeFile</span> = fileDescriptor =&gt; iteratorSum<span style="color: #4f97d7;">(</span>readYuuuugeFile<span style="color: #bc6ec5;">(</span>fileDescriptor<span style="color: #bc6ec5;">)</span>.map<span style="color: #bc6ec5;">(</span>line =&gt; line.length<span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">)</span>;
+</pre>
+</div>
+
+</section>
+</section>
+<section>
+<section id="slide-orgd38ca2f">
+<h2 id="orgd38ca2f">Promessas</h2>
+<p>
+Computações assíncronas.
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-javascript">doSomethingAsynchronously<span style="color: #4f97d7;">()</span>
+  .then<span style="color: #4f97d7;">(</span>doSomethingElse<span style="color: #4f97d7;">)</span>
+  .then<span style="color: #4f97d7;">(</span>andThenAnotherThing<span style="color: #4f97d7;">)</span>
+  .then<span style="color: #4f97d7;">(</span>andYetAnother<span style="color: #4f97d7;">)</span> <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">...</span>
+</pre>
+</div>
+
+<p class="fragment roll-in">
+Anatomia de uma promessa:
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">pendingPromise</span> = <span style="color: #4f97d7;">{</span>
+  state: <span style="color: #98be65;">"pending"</span>,
+<span style="color: #4f97d7;">}</span>
+
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">resolvedPromise</span> = <span style="color: #4f97d7;">{</span>
+  state: <span style="color: #98be65;">"fulfilled"</span>,
+  value: <span style="color: #da8548; font-weight: bold;">1</span>;
+<span style="color: #4f97d7;">}</span>
+
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">rejectedPromise</span> = <span style="color: #4f97d7;">{</span>
+  state: <span style="color: #98be65;">"rejected"</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-org899fcb6">
+<h3 id="org899fcb6"><code>Promise.all</code></h3>
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">firstRequest</span> = $http.get<span style="color: #4f97d7;">(</span><span style="color: #98be65;">"/blablabla"</span><span style="color: #4f97d7;">)</span>.then<span style="color: #4f97d7;">(</span>doSomething<span style="color: #4f97d7;">)</span>;
+<span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">secondRequest</span> = $http.get<span style="color: #4f97d7;">(</span><span style="color: #98be65;">"/whatever"</span><span style="color: #4f97d7;">)</span>.then<span style="color: #4f97d7;">(</span>doAnotherThing<span style="color: #4f97d7;">)</span>;
+
+Promise.all<span style="color: #4f97d7;">(</span>firstRequest, secondRequest<span style="color: #4f97d7;">)</span>
+  .then<span style="color: #4f97d7;">(</span><span style="color: #bc6ec5;">[</span>firstResult, secondResult<span style="color: #bc6ec5;">]</span> =&gt; doSomethingWithTheTwo<span style="color: #bc6ec5;">(</span>firstResult, secondResult<span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">)</span>;
+
+</pre>
+</div>
+
+</section>
+<section id="slide-orge16ecc4">
+<h3 id="orge16ecc4">Exceções</h3>
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">processRequest</span> <span style="color: #4f97d7;">(</span><span style="color: #61afef;">requestRoute</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">return</span> $http.get<span style="color: #bc6ec5;">(</span>requestRoute<span style="color: #bc6ec5;">)</span>
+    .then<span style="color: #bc6ec5;">(</span>response =&gt; firstAction<span style="color: #2d9574;">(</span>response<span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>
+    .then<span style="color: #bc6ec5;">(</span>firstResult =&gt; secondAction<span style="color: #2d9574;">(</span>firstResult<span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>
+    .then<span style="color: #bc6ec5;">(</span>secondResult =&gt; finalAction<span style="color: #2d9574;">(</span>secondResult<span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>
+    .<span style="color: #c678dd; font-weight: bold;">catch</span><span style="color: #bc6ec5;">(</span>error =&gt; treatError<span style="color: #2d9574;">(</span>error<span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+</section>
+<section id="slide-orgf7b03b3">
+<h3 id="orgf7b03b3"><code>async/await</code></h3>
+<div class="org-src-container">
+
+<pre  class="src src-javascript">async <span style="color: #c678dd; font-weight: bold;">function</span> processRequest2 <span style="color: #4f97d7;">(</span><span style="color: #61afef;">requestRoute</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">try</span> <span style="color: #bc6ec5;">{</span>
+    <span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">response</span> = await $http.get<span style="color: #2d9574;">(</span>requestRoute<span style="color: #2d9574;">)</span>;
+    <span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">result</span> = await secondAction<span style="color: #2d9574;">(</span>firstAction<span style="color: #67b11d;">(</span>response<span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span>;
+
+    <span style="color: #c678dd; font-weight: bold;">return</span> finalAction<span style="color: #2d9574;">(</span>result<span style="color: #2d9574;">)</span>;
+  <span style="color: #bc6ec5;">}</span> <span style="color: #c678dd; font-weight: bold;">catch</span> error <span style="color: #bc6ec5;">{</span>
+    treatError<span style="color: #2d9574;">(</span>error<span style="color: #2d9574;">)</span>;
+  <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+</section>
+</section>
+<section>
+<section id="slide-orgd13f1f9">
+<h2 id="orgd13f1f9">Geradores assíncronos: A fronteira final</h2>
+<div class="org-src-container">
+
+<pre  class="src src-javascript"><span style="color: #c678dd; font-weight: bold;">function</span> <span style="color: #61afef; font-weight: bold;">sleep</span><span style="color: #4f97d7;">(</span><span style="color: #61afef;">ms</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span> <span style="color: #687080; background-color: #292e34; font-style: italic;">// </span><span style="color: #687080; background-color: #292e34; font-style: italic;">https://stackoverflow.com/a/41597717/5734424</span>
+  <span style="color: #c678dd; font-weight: bold;">return</span> <span style="color: #c678dd; font-weight: bold;">new</span> <span style="color: #61afef; font-weight: bold;">Promise</span><span style="color: #bc6ec5;">(</span>res =&gt; setTimeout<span style="color: #2d9574;">(</span>res, ms<span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+
+async <span style="color: #c678dd; font-weight: bold;">function</span> *pollServer <span style="color: #4f97d7;">(</span>route<span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">sleepTime</span> = <span style="color: #da8548; font-weight: bold;">60000</span>;
+  <span style="color: #c678dd; font-weight: bold;">while</span> <span style="color: #bc6ec5;">(</span><span style="color: #da8548; font-weight: bold;">true</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    <span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">response</span> = await $http.get<span style="color: #2d9574;">(</span>route<span style="color: #2d9574;">)</span>;
+    <span style="color: #c678dd; font-weight: bold;">yield</span> response;
+    await sleep<span style="color: #2d9574;">(</span>sleepTime<span style="color: #2d9574;">)</span>;
+  <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
+
+async <span style="color: #c678dd; font-weight: bold;">function</span> continuouslyProcessRequests <span style="color: #4f97d7;">(</span><span style="color: #61afef;">route</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+  <span style="color: #c678dd; font-weight: bold;">for</span> await <span style="color: #bc6ec5;">(</span><span style="color: #c678dd; font-weight: bold;">const</span> <span style="color: #61afef;">response</span> of pollServer<span style="color: #2d9574;">(</span>route<span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+    processResponse<span style="color: #2d9574;">(</span>response<span style="color: #2d9574;">)</span>;
+  <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+</section>
+</section>
+<section>
+<section id="slide-orgd6fb8cd">
+<h2 id="orgd6fb8cd">Mais Informações</h2>
+<ul>
+<li>Programação funcional
+<ul>
+<li>Abelson, Sussman e Sussman - <a href="https://sarabander.github.io/sicp">Structure and Interpretation Of Computer Programs</a> (em Lisp)</li>
+<li>Friedman e Felleisen - <a href="https://www.amazon.com/Little-Schemer-Daniel-P-Friedman/dp/0262560992">The Little Schemer</a> (em Scheme)</li>
+<li>Bird e Wadler - <a href="https://usi-pl.github.io/lc/sp-2015/doc/Bird_Wadler.%20Introduction%20to%20Functional%20Programming.1ed.pdf">Introduction to Functional Programming</a> (em Miranda)</li>
+
+</ul></li>
+
+<li>Geradores e listas preguiçosas
+<ul>
+<li>David M. Beazley - <a href="http://dabeaz.com/finalgenerator/index.html">Generators: The Final Frontier</a> (em Python)</li>
+<li>Rabhi e Lapalme - <a href="https://www.amazon.com/dp/0201596040">Algorithms: A Functional Programming Approach</a> (em Haskell)</li>
+
+</ul></li>
+
+<li>Javascript moderno
+<ul>
+<li>Axel Rauschmayer - <a href="http://exploringjs.com/es6.html">Exploring ES6</a></li>
+<li>Axel Rauschmayer - <a href="http://2ality.com/index.html">2ality - Javascript and more</a></li>
+<li>Ponyfoo - <a href="https://ponyfoo.com/articles/es6">ES6 Overview in 350 Bullet Points</a></li>
+
+</ul></li>
+
+</ul>
+</section>
+</section>
+</div>
+</div>
+<script src="http://cdn.jsdelivr.net/reveal.js/3.0.0/lib/js/head.min.js"></script>
+<script src="http://cdn.jsdelivr.net/reveal.js/3.0.0/js/reveal.js"></script>
+
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: false,
+history: false,
+center: true,
+slideNumber: false,
+rollingLinks: false,
+keyboard: true,
+overview: true,
+
+theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+transitionSpeed: 'default',
+multiplex: {
+    secret: '', // null if client
+    id: '', // id, obtained from socket.io server
+    url: '' // Location of socket.io server
+},
+
+// Optional libraries used to extend on reveal.js
+dependencies: [
+ { src: 'http://cdn.jsdelivr.net/reveal.js/3.0.0/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+ { src: 'http://cdn.jsdelivr.net/reveal.js/3.0.0/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: 'http://cdn.jsdelivr.net/reveal.js/3.0.0/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: 'http://cdn.jsdelivr.net/reveal.js/3.0.0/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+ { src: 'http://cdn.jsdelivr.net/reveal.js/3.0.0/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }]
+});
+</script>
+</body>
+</html>
